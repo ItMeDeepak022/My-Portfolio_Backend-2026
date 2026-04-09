@@ -39,7 +39,7 @@ App.get('/', (req, res) => {
 })
 
 
-mongoose.connect(`mongodb://127.0.0.1:27017/${process.env.DBNAME}`)
+mongoose.connect(process.env.DbUrl)
     .then(() => {
         App.listen(4000, () => {
             console.log("server start...", 4000);
