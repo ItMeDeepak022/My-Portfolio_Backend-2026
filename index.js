@@ -30,7 +30,7 @@ App.use('/uploads/certificate', express.static('uploads/certificate'))
 
 
 
-//https://localhost:4000
+//https://localhost:9000
 App.get('/', (req, res) => {
     res.send({
         status: true,
@@ -41,9 +41,10 @@ App.get('/', (req, res) => {
 
 mongoose.connect(process.env.DbUrl)
     .then(() => {
-        console.log('DB connected to ATLAS..',process.env.PORT);
+        console.log('DB connected to ATLAS..');
     })
     .catch((error) => {
         console.log(error);
     })
 
+    module.exports=App
