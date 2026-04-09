@@ -39,20 +39,9 @@ App.get('/', (req, res) => {
 })
 
 
-// mongoose.connect(process.env.DbUrl)
-//     .then(() => {
-//         App.listen(4000, () => {
-//             console.log("server start...", 4000);
-//         })
-//     })
 mongoose.connect(process.env.DbUrl)
     .then(() => {
-        // http://localhost:9000
-        App.listen(process.env.PORT, () => {
-            console.log('DB connected to ATLAS..', process.env.PORT,);
-        })
-
-
+        console.log('DB connected to ATLAS..',process.env.PORT);
     })
     .catch((error) => {
         console.log(error);
