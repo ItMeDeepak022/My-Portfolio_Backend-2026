@@ -22,13 +22,19 @@ App.use("/portfolio-API", portfolioRoutes)
 
 // To Allow to show img url to access any where..
 
-App.use('/uploads/profile', express.static('uploads/profile'))
-App.use('/uploads/resume', express.static('uploads/resume'))
-App.use('/uploads/internship', express.static('uploads/internship'))
-App.use('/uploads/project', express.static('uploads/project'))
-App.use('/uploads/certificate', express.static('uploads/certificate'))
+// App.use('/uploads/profile', express.static('uploads/profile'))
+// App.use('/uploads/resume', express.static('uploads/resume'))
+// App.use('/uploads/internship', express.static('uploads/internship'))
+// App.use('/uploads/project', express.static('uploads/project'))
+// App.use('/uploads/certificate', express.static('uploads/certificate'))
 
+// Also use it for view photo as live after hosted your backend
 
+App.use('/uploads/profile', express.static('/tmp/uploads/profile'))
+App.use('/uploads/resume', express.static('/tmp/uploads/resume'))
+App.use('/uploads/internship', express.static('/tmp/uploads/internship'))
+App.use('/uploads/project', express.static('/tmp/uploads/project'))
+App.use('/uploads/certificate', express.static('/tmp/uploads/certificate'))
 
 //https://localhost:9000
 App.get('/', (req, res) => {
@@ -47,4 +53,4 @@ mongoose.connect(process.env.DbUrl)
         console.log(error);
     })
 
-    module.exports=App
+module.exports = App
