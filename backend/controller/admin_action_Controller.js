@@ -59,7 +59,7 @@ let editProfile = async (req, res) => {
         });
     }
 
-   
+
 
     // ✅ NEW IMAGE AAYI TO OLD DELETE KARO
     if (req.file && req.file.filename) {
@@ -422,11 +422,15 @@ let editIntern = async (req, res) => {
 
         // old image delete
         if (data.internImg) {
-            fs.unlinkSync(`uploads/internship/${data.internImg}`);
+            const filePath = `/tmp/uploads/internship/${data.internImg}`;
+
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
         }
 
         // new image set
-        obj['internImg'] = req.file.filename;
+        obj.internImg = req.file.filename;
     }
 
     let ResObj = await internshipModel.updateOne(
@@ -542,8 +546,13 @@ let editproject = async (req, res) => {
 
         // old image delete
         if (data.projectImg) {
-            fs.unlinkSync(`uploads/project/${data.projectImg}`);
+            const filePath = `/tmp/uploads/project/${data.projectImg}`;
+
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
         }
+
 
         // new image set
         obj['projectImg'] = req.file.filename;
