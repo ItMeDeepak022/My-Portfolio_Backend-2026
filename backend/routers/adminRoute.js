@@ -3,12 +3,13 @@ const { login, registration } = require('../controller/authController')
 const { addProfile, editProfile, deleteProfile, addResume, editResume, deleteResume, addskill, viewSkills, editSkills, deleteSkills, addIntern, viewIntern, editIntern, deleteIntern, addproject, editproject, viewproject, deleteproject, addCertificate, viewCertificate, deleteCertificate, editCertificate, viewProfile, viewResume } = require('../controller/admin_action_Controller')
 const { fileupload } = require('../config/multerConfig')
 const upload = require('../config/multerConfig')
+ 
 let adminRoute = express()
 
 // ADD PROFILE
-adminRoute.post('/add', upload('profile').single('profileImg'), addProfile)
+adminRoute.post('/add',upload('profile').single('profileImg'), addProfile)
 adminRoute.get('/view',viewProfile)
-adminRoute.put('/edit/:id', upload('profile').single('profileImg'), editProfile)
+adminRoute.put('/edit/:id',upload('profile').single('profileImg'), editProfile)
 adminRoute.delete('/delete/:id', deleteProfile)
 // ----------------------------------------------
 
