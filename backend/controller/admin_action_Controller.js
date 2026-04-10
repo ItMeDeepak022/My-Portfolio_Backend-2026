@@ -39,7 +39,7 @@ let addProfile = async (req, res) => {
             {
                 status: false,
                 message: "error found",
-                error:err
+                error: err
             }
         )
     }
@@ -59,16 +59,20 @@ let editProfile = async (req, res) => {
         });
     }
 
+   
+
     // ✅ NEW IMAGE AAYI TO OLD DELETE KARO
     if (req.file && req.file.filename) {
 
-        // old image delete
         if (data.profileImg) {
-            fs.unlinkSync(`uploads/profile/${data.profileImg}`);
+            const filePath = `/tmp/uploads/profile/${data.profileImg}`;
+
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
         }
 
-        // new image set
-        obj['profileImg'] = req.file.filename;
+        obj.profileImg = req.file.filename;
     }
 
     let ResObj = await profileModel.updateOne(
