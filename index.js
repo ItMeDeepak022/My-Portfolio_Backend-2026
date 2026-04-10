@@ -1,4 +1,4 @@
-let express = require('express')
+let express=require('express')
 let mongoose = require('mongoose')
 const { adminRoute } = require('./backend/routers/adminRoute')
 const { portfolioRoutes } = require('./backend/routers/portfolioRoute')
@@ -45,7 +45,7 @@ App.get('/', (req, res) => {
 })
 
 
-await mongoose.connect(process.env.DbUrl)
+ mongoose.connect(process.env.DbUrl)
     .then(() => {
         console.log('DB connected to ATLAS..');
     })
