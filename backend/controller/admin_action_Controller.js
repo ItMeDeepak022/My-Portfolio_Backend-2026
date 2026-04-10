@@ -503,7 +503,7 @@ let addproject = async (req, res) => {
 
     res.send({
         status: true,
-        message: 'Internship details added now..',
+        message: 'Project details added now..',
         path: process.env.projectpath,
         data
     })
