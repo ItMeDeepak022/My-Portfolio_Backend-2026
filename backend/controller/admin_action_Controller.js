@@ -404,47 +404,62 @@ let viewIntern = async (req, res) => {
     })
 }
 
+
+
 let editIntern = async (req, res) => {
-    let { id } = req.params;
-    let obj = { ...req.body }
+    try {
+        let { id } = req.params;
+        let obj = { ...req.body };
 
-    let data = await internshipModel.findOne({ _id: id });
+        let data = await internshipModel.findOne({ _id: id });
 
-    if (!data) {
-        return res.send({
-            status: false,
-            message: "Id does not exist..."
-        });
-    }
-
-    // ✅ NEW IMAGE AAYI TO OLD DELETE KARO
-    if (req.file && req.file.filename) {
-
-        // old image delete
-        if (data.internImg) {
-            const filePath = `/tmp/uploads/internship/${data.internImg}`;
-
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-            }
+        if (!data) {
+            return res.send({
+                status: false,
+                message: "Id does not exist..."
+            });
         }
 
-        // new image set
-        obj.internImg = req.file.filename;
+        // ✅ NEW IMAGE AAYI TO OLD DELETE KARO
+        if (req.file && req.file.filename) {
+
+            try {
+                if (data.internImg) {
+                    const filePath = `/tmp/uploads/internship/${data.internImg}`;
+
+                    // ✅ safe delete
+                    if (fs.existsSync(filePath)) {
+                        fs.unlinkSync(filePath);
+                    }
+                }
+            } catch (err) {
+                console.log("File delete error:", err);
+            }
+
+            // new image set
+            obj.internImg = req.file.filename;
+        }
+
+        let ResObj = await internshipModel.updateOne(
+            { _id: id },
+            { $set: obj }
+        );
+
+        res.send({
+            status: true,
+            message: "intern updated successfully...",
+            ResObj
+        });
+
+    } catch (err) {
+        console.log("ERROR:", err);
+
+        res.status(500).send({
+            status: false,
+            message: err.message
+        });
     }
-
-    let ResObj = await internshipModel.updateOne(
-        { _id: id },
-        { $set: obj }
-    );
-
-    res.send({
-        status: true,
-        message: "intern updated successfully...",
-        ResObj
-    });
-
-}
+};
 
 let deleteIntern = async (req, res) => {
 
@@ -529,47 +544,59 @@ let viewproject = async (req, res) => {
 }
 
 let editproject = async (req, res) => {
-    let { id } = req.params;
-    let obj = { ...req.body }
+    try {
+        let { id } = req.params;
+        let obj = { ...req.body };
 
-    let data = await projectModel.findOne({ _id: id });
+        let data = await projectModel.findOne({ _id: id });
 
-    if (!data) {
-        return res.send({
-            status: false,
-            message: "Id does not exist..."
-        });
-    }
-
-    // ✅ NEW IMAGE AAYI TO OLD DELETE KARO
-    if (req.file && req.file.filename) {
-
-        // old image delete
-        if (data.projectImg) {
-            const filePath = `/tmp/uploads/project/${data.projectImg}`;
-
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-            }
+        if (!data) {
+            return res.send({
+                status: false,
+                message: "Id does not exist..."
+            });
         }
 
+        // ✅ NEW IMAGE AAYI TO OLD DELETE KARO
+        if (req.file && req.file.filename) {
 
-        // new image set
-        obj['projectImg'] = req.file.filename;
+            try {
+                if (data.projectImg) {
+                    const filePath = `/tmp/uploads/project/${data.projectImg}`;
+
+                    // ✅ safe delete
+                    if (fs.existsSync(filePath)) {
+                        fs.unlinkSync(filePath);
+                    }
+                }
+            } catch (err) {
+                console.log("File delete error:", err);
+            }
+
+            // new image set
+            obj.projectImg = req.file.filename;
+        }
+
+        let ResObj = await projectModel.updateOne(
+            { _id: id },
+            { $set: obj }
+        );
+
+        res.send({
+            status: true,
+            message: "project updated successfully...",
+            ResObj
+        });
+
+    } catch (err) {
+        console.log("ERROR:", err);
+
+        res.status(500).send({
+            status: false,
+            message: err.message
+        });
     }
-
-    let ResObj = await projectModel.updateOne(
-        { _id: id },
-        { $set: obj }
-    );
-
-    res.send({
-        status: true,
-        message: "intern updated successfully...",
-        ResObj
-    });
-
-}
+};
 
 let deleteproject = async (req, res) => {
 
