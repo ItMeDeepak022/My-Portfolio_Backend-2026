@@ -39,7 +39,7 @@ let addProfile = async (req, res) => {
             {
                 status: false,
                 message: "error found",
-                error
+                error:err
             }
         )
     }
