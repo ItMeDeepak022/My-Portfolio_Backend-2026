@@ -45,7 +45,7 @@ App.get('/', (req, res) => {
 })
 
 
-mongoose.connect(process.env.DbUrl)
+await mongoose.connect(process.env.DbUrl)
     .then(() => {
         console.log('DB connected to ATLAS..');
     })
