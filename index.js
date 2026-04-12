@@ -28,11 +28,12 @@ App.use('/admin', adminRoute)
 App.use("/portfolio-API", portfolioRoutes)
 
 // Static files (Render friendly)
-App.use('/uploads/profile', express.static('uploads/profile'))
-App.use('/uploads/resume', express.static('uploads/resume'))
-App.use('/uploads/internship', express.static('uploads/internship'))
-App.use('/uploads/project', express.static('uploads/project'))
-App.use('/uploads/certificate', express.static('uploads/certificate'))
+
+// App.use('/uploads/profile', express.static('uploads/profile'))
+// App.use('/uploads/resume', express.static('uploads/resume'))
+// App.use('/uploads/internship', express.static('uploads/internship'))
+// App.use('/uploads/project', express.static('uploads/project'))
+// App.use('/uploads/certificate', express.static('uploads/certificate'))
 
 // Home
 App.get('/', (req, res) => {
