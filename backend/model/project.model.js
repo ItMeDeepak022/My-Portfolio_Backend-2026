@@ -5,7 +5,8 @@ const projectSchema = new mongoose.Schema({
     projectTitle: String,
     aboutProject: String,
     projectLink: String,
-    projectImg: String
+    projectImg: String,
+    public_id: String,
 
 })
 

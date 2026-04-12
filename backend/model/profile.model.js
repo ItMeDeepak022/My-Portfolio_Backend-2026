@@ -1,11 +1,12 @@
 const mongoose = require('mongoose')
 
 const profileSchema = new mongoose.Schema({
-  profileImg: String,
-  profileName:String,
-  uploadDate: {
+  profileImg: String,      // Cloudinary URL
+  public_id: String,       // 🔥 MUST for delete/update
+  profileName: String,
+uploadDate: {
     type: Date,
-    default: new Date()
+    default: Date.now      // ✅ better way
   }
 })
 

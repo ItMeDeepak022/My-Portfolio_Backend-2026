@@ -1,8 +1,6 @@
 //  1. Profiles API Logics
-
+const cloudinary = require("../config/cloudinary");
 const { set } = require("mongoose")
-const path = require("path");
-const fs = require("fs");
 
 const profileModel = require("../model/profile.model");
 const resumeModel = require("../model/resume.model");
@@ -11,37 +9,34 @@ const internshipModel = require("../model/internship.model");
 const projectModel = require("../model/project.model");
 const certificateModel = require("../model/certificate.model");
 
+
 let addProfile = async (req, res) => {
 
     try {
         let obj = { ...req.body }
 
-
-
         if (req.file) {
-            if (req.file.filename != "" && req.file.filename != null && req.file.filename != undefined) {
-                obj['profileImg'] = req.file.filename
+            if (req.file.path) {
+                obj['profileImg'] = req.file.path      // ✅ URL
+                obj['public_id'] = req.file.filename   // ✅ for delete/update
             }
         }
 
         let Resobj = await profileModel.create(obj)
 
-
         res.send({
             status: true,
             message: "Profile successfully added...",
-            path: process.env.profilepath,
-            Resobj
+            data: Resobj
         })
+
     }
     catch (err) {
-        res.send(
-            {
-                status: false,
-                message: "error found",
-                error: err
-            }
-        )
+        res.send({
+            status: false,
+            message: "error found",
+            error: err
+        })
     }
 }
 
@@ -59,25 +54,17 @@ let editProfile = async (req, res) => {
             });
         }
 
-        // 🔥 NEW IMAGE AAYI TO OLD DELETE KARO
-        if (req.file?.filename) {
+        // 🔥 NEW FILE AAYI TO OLD DELETE KARO
+        if (req.file) {
 
-            if (data.profileImg) {
-                const filePath = path.join(
-                    process.cwd(),
-                    "uploads",
-                    "profile",
-                    data.profileImg
-                );
-
-                // ✅ safe delete
-                if (fs.existsSync(filePath)) {
-                    fs.unlinkSync(filePath);
-                }
+            // ✅ Cloudinary se old delete
+            if (data.public_id) {
+                await cloudinary.uploader.destroy(data.public_id);
             }
 
-            // ✅ new image set
-            obj.profileImg = req.file.filename;
+            // ✅ new file set
+            obj.profileImg = req.file.path;       // URL
+            obj.public_id = req.file.filename;    // public_id
         }
 
         let ResObj = await profileModel.updateOne(
@@ -109,7 +96,7 @@ let viewProfile = async (req, res) => {
     res.send({
         status: true,
         message: "Profile data fetched...",
-        path: process.env.profilepath,
+        // path: process.env.profilepath,
         data
     })
 }
@@ -117,35 +104,20 @@ let viewProfile = async (req, res) => {
 let deleteProfile = async (req, res) => {
     try {
 
-
         let { id } = req.params;
 
         let data = await profileModel.findById(id);
-
-
 
         if (!data) {
             return res.send({ status: false, message: "Id not found" });
         }
 
-        if (data.profileImg) {
-            let filePath = path.join(
-                process.cwd(),
-                "uploads",
-                "profile",
-                data.profileImg
-            );
-
-
-
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-                console.log("✅ Image deleted");
-            } else {
-                console.log("❌ File not found");
-            }
+        // 🔥 Cloudinary se delete
+        if (data.public_id) {
+            await cloudinary.uploader.destroy(data.public_id);
         }
 
+        // 🔥 DB se delete
         await profileModel.deleteOne({ _id: id });
 
         res.send({
@@ -164,42 +136,36 @@ let deleteProfile = async (req, res) => {
 
 // -----------------------------------------------------------------------------
 
-// Resume API  logics
+// Resume API  logics for PDF files
 
 let addResume = async (req, res) => {
-
     try {
-        let obj = { ...req.body }
+        let obj = { ...req.body };
 
-        // console.log(req.file); // ✅ single file
-        // console.log(req.body);
+        if (req.file) {
+            obj.resumeLetter = req.file.path;
 
-        // ✅ correct handling
-        if (req.file && req.file.filename) {
-            obj['resumeLetter'] = req.file.filename;
+            // 🔥 public_id fix
+            obj.public_id = req.file.filename.split(".")[0];
         }
 
-        let Resobj = await resumeModel.create(obj)
+        let data = await resumeModel.create(obj);
 
         res.send({
             status: true,
-            message: "Resume successfully added...",
-            path: process.env.resumepath,
-            Resobj
-        })
+            message: "Resume added successfully",
+            data
+        });
 
     } catch (err) {
         res.send({
             status: false,
-            message: "error found",
-            err
-        })
+            error: err.message
+        });
     }
-}
-
+};
 
 let editResume = async (req, res) => {
-
     try {
         let { id } = req.params;
 
@@ -212,34 +178,28 @@ let editResume = async (req, res) => {
         let obj = { ...req.body };
 
         // ✅ agar new file aayi
-        if (req.file && req.file.filename) {
+        if (req.file) {
 
-            // 🔥 old file delete
-            if (data.resumeLetter) {
-                let oldPath = path.join(
-                    process.cwd(),
-                    "uploads",
-                    "resume",
-                    data.resumeLetter
-                );
-
-                if (fs.existsSync(oldPath)) {
-                    fs.unlinkSync(oldPath);
-                    console.log("Old resume deleted ✅");
-                } else {
-                    console.log("Old file not found ❌");
-                }
+            // 🔥 old resume delete from Cloudinary
+            if (data.public_id) {
+                await cloudinary.uploader.destroy(data.public_id);
             }
 
             // ✅ new file set
-            obj.resumeLetter = req.file.filename;
+            obj.resumeLetter = req.file.path;     // ✅ URL
+            obj.public_id = req.file.filename;    // ✅ public_id
         }
 
-        await resumeModel.findByIdAndUpdate(id, obj);
+        let updated = await resumeModel.findByIdAndUpdate(
+            id,
+            obj,
+            { new: true }
+        );
 
         res.send({
             status: true,
-            message: "Resume updated successfully"
+            message: "Resume updated successfully",
+            data: updated
         });
 
     } catch (err) {
@@ -250,6 +210,39 @@ let editResume = async (req, res) => {
     }
 };
 
+let deleteResume = async (req, res) => {
+    try {
+        let { id } = req.params;
+        let data = await resumeModel.findById(id);
+
+        if (!data) {
+            return res.send({ status: false, message: "Id not found" });
+        }
+
+        if (data.public_id) {
+            // ✅ THIS IS THE FIX: 
+            // Cloudinary treats PDFs as "image" type. 
+            // "raw" is only for zip, txt, docx etc.
+            const result = await cloudinary.uploader.destroy(data.public_id, {
+                resource_type: "image"
+            });
+
+            console.log("Cloudinary Result:", result);
+            // Result should now say { result: 'ok' }
+        }
+
+        await resumeModel.findByIdAndDelete(id);
+
+        res.send({
+            status: true,
+            message: "Resume Deleted successfully"
+        });
+
+    } catch (error) {
+        res.send({ status: false, error: error.message });
+    }
+};
+
 let viewResume = async (req, res) => {
 
     let data = await resumeModel.find()
@@ -257,58 +250,11 @@ let viewResume = async (req, res) => {
     res.send({
         status: true,
         message: "Resume data fetched...",
-        path: process.env.resumepath,
         data
     })
 }
 
-let deleteResume = async (req, res) => {
-    try {
 
-
-        let { id } = req.params;
-
-        let data = await resumeModel.findById(id);
-
-
-
-        if (!data) {
-            return res.send({ status: false, message: "Id not found" });
-        }
-
-        if (data.resumeLetter) {
-            let filePath = path.join(
-                process.cwd(),
-                "uploads",
-                "resume",
-                data.resumeLetter
-            );
-
-
-
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-                console.log("✅ Image deleted");
-            } else {
-                console.log("❌ File not found");
-            }
-        }
-
-        await resumeModel.deleteOne({ _id: id });
-
-        res.send({
-            status: true,
-            message: "Resume deleted successfully"
-        });
-
-    } catch (error) {
-        console.log(error);
-        res.send({
-            status: false,
-            error: error.message
-        });
-    }
-};
 
 // Skill API Logics...........
 
@@ -389,24 +335,30 @@ let deleteSkills = async (req, res) => {
 
 // Internship API Logics...........
 
-
 let addIntern = async (req, res) => {
+    try {
+        let obj = { ...req.body };
 
-    let obj = { ...req.body }
+        if (req.file) {
+            obj.internImg = req.file.path;       // ✅ URL
+            obj.public_id = req.file.filename;  // ✅ for delete/update
+        }
 
-    if (req.file && req.file.filename) {
-        obj['internImg'] = req.file.filename;
+        let data = await internshipModel.create(obj);
+
+        res.send({
+            status: true,
+            message: 'Internship details added...',
+            data
+        });
+
+    } catch (err) {
+        res.send({
+            status: false,
+            error: err.message
+        });
     }
-
-    let data = await internshipModel.create(obj)
-
-    res.send({
-        status: true,
-        message: 'Internship details added now..',
-        path: process.env.internpath,
-        data
-    })
-}
+};
 
 let viewIntern = async (req, res) => {
 
@@ -426,7 +378,7 @@ let editIntern = async (req, res) => {
         let { id } = req.params;
         let obj = { ...req.body };
 
-        let data = await internshipModel.findOne({ _id: id });
+        let data = await internshipModel.findById(id);
 
         if (!data) {
             return res.send({
@@ -435,46 +387,29 @@ let editIntern = async (req, res) => {
             });
         }
 
-        // ✅ NEW IMAGE AAYI TO OLD DELETE KARO
-        if (req.file?.filename) {
+        // ✅ new file aayi to old delete
+        if (req.file) {
 
-            try {
-                if (data.internImg) {
-
-                    const filePath = path.join(
-                        process.cwd(),
-                        "uploads",
-                        "internship",
-                        data.internImg
-                    );
-
-                    // ✅ safe delete
-                    if (fs.existsSync(filePath)) {
-                        fs.unlinkSync(filePath);
-                    }
-                }
-            } catch (err) {
-                console.log("File delete error:", err.message);
+            if (data.public_id) {
+                await cloudinary.uploader.destroy(data.public_id);
             }
 
-            // ✅ new image set
-            obj.internImg = req.file.filename;
+            obj.internImg = req.file.path;      // ✅ URL
+            obj.public_id = req.file.filename; // ✅ public_id
         }
 
-        let ResObj = await internshipModel.updateOne(
-            { _id: id },
+        let updated = await internshipModel.updateOne({ _id: id },
+
             { $set: obj }
         );
 
         res.send({
             status: true,
-            message: "intern updated successfully...",
-            ResObj
+            message: "Intern updated successfully...",
+            updated
         });
 
     } catch (err) {
-        console.log("ERROR:", err);
-
         res.status(500).send({
             status: false,
             message: err.message
@@ -483,53 +418,34 @@ let editIntern = async (req, res) => {
 };
 
 let deleteIntern = async (req, res) => {
-
     try {
-
-
         let { id } = req.params;
 
         let data = await internshipModel.findById(id);
-
-
 
         if (!data) {
             return res.send({ status: false, message: "Id not found" });
         }
 
-        if (data.internImg) {
-            let filePath = path.join(
-                process.cwd(),
-                "uploads",
-                "internship",
-                data.internImg
-            );
-
-
-
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-                console.log("✅ Image deleted");
-            } else {
-                console.log("❌ File not found");
-            }
+        // 🔥 Cloudinary delete
+        if (data.public_id) {
+            await cloudinary.uploader.destroy(data.public_id);
         }
 
-        await internshipModel.deleteOne({ _id: id });
+        await internshipModel.deleteOne(id);
 
         res.send({
             status: true,
-            message: "Intern details deleted successfully"
+            message: "Intern deleted successfully"
         });
 
     } catch (error) {
-        console.log(error);
         res.send({
             status: false,
             error: error.message
         });
     }
-}
+};
 
 
 // Internship API Logics...........
@@ -539,8 +455,10 @@ let addproject = async (req, res) => {
 
     let obj = { ...req.body }
 
-    if (req.file && req.file.filename) {
-        obj['projectImg'] = req.file.filename;
+
+    if (req.file) {
+        obj.projectImg = req.file.path;       // ✅ URL
+        obj.public_id = req.file.filename;  // ✅ for delete/update
     }
 
     let data = await projectModel.create(obj)
@@ -548,7 +466,6 @@ let addproject = async (req, res) => {
     res.send({
         status: true,
         message: 'Project details added now..',
-        path: process.env.projectpath,
         data
     })
 }
@@ -578,31 +495,19 @@ let editproject = async (req, res) => {
             });
         }
 
-        // ✅ NEW IMAGE AAYI TO OLD DELETE KARO
-        if (req.file?.filename) {
 
-            try {
-                if (data.projectImg) {
 
-                    const filePath = path.join(
-                        process.cwd(),
-                        "uploads",
-                        "project",
-                        data.projectImg
-                    );
+        // ✅ new file aayi to old delete
+        if (req.file) {
 
-                    // ✅ safe delete
-                    if (fs.existsSync(filePath)) {
-                        fs.unlinkSync(filePath);
-                    }
-                }
-            } catch (err) {
-                console.log("File delete error:", err.message);
+            if (data.public_id) {
+                await cloudinary.uploader.destroy(data.public_id);
             }
 
-            // ✅ new image set
-            obj.projectImg = req.file.filename;
+            obj.projectImg = req.file.path;      // ✅ URL
+            obj.public_id = req.file.filename; // ✅ public_id
         }
+
 
         let ResObj = await projectModel.updateOne(
             { _id: id },
@@ -640,22 +545,9 @@ let deleteproject = async (req, res) => {
             return res.send({ status: false, message: "Id not found" });
         }
 
-        if (data.projectImg) {
-            let filePath = path.join(
-                process.cwd(),
-                "uploads",
-                "project",
-                data.projectImg
-            );
-
-
-
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-                console.log("✅ Image deleted");
-            } else {
-                console.log("❌ File not found");
-            }
+        // 🔥 Cloudinary delete
+        if (data.public_id) {
+            await cloudinary.uploader.destroy(data.public_id);
         }
 
         await projectModel.deleteOne({ _id: id });
@@ -683,14 +575,24 @@ let addCertificate = async (req, res) => {
 
         let obj = { ...req.body };
 
-        // ✅ image
+
+
+
+        // ✅ Get Image URL from Cloudinary
         if (req.files?.certificateImg) {
-            obj.certificateImg = req.files.certificateImg[0].filename;
+            obj.certificateImg = req.files.certificateImg[0].path;
+
+            // Also store public_id if you want to delete it later
+            obj.publicImg_id = req.files.certificateImg[0].filename;
         }
 
-        // ✅ pdf
+
+        // ✅ Get PDF URL from Cloudinary
         if (req.files?.certificatePdf) {
-            obj.certificatePdf = req.files.certificatePdf[0].filename;
+            obj.certificatePdf = req.files.certificatePdf[0].path;
+
+            // Also store public_id if you want to delete it later
+            obj.publicPdf_id = req.files.certificatePdf[0].filename;
         }
 
         let data = await certificateModel.create(obj);
@@ -698,7 +600,6 @@ let addCertificate = async (req, res) => {
         res.send({
             status: true,
             message: "Certificate added successfully",
-            path: process.env.certificatepath,
             data
         });
 
@@ -716,7 +617,7 @@ let viewCertificate = async (req, res) => {
 
     res.send({
         status: true,
-        path: process.env.certificatepath,
+        message: "certificated data founds..",
         data
     })
 }
@@ -725,64 +626,41 @@ let viewCertificate = async (req, res) => {
 
 let editCertificate = async (req, res) => {
     try {
-
         let { id } = req.params;
         let obj = { ...req.body };
 
-        let data = await certificateModel.findById(id);
-
+        let data = await certificateModel.findOne({_id:id});
         if (!data) {
-            return res.send({
-                status: false,
-                message: "Id does not exist..."
-            });
+            return res.send({ status: false, message: "Id does not exist..." });
         }
+
+
 
         // 🔥 IMAGE UPDATE
         if (req.files?.certificateImg) {
-
-            // old delete
-            if (data.certificateImg) {
-                let oldImgPath = path.join(
-                    process.cwd(),
-                    "uploads",
-                    "certificate",
-                    data.certificateImg
-                );
-
-                if (fs.existsSync(oldImgPath)) {
-                    fs.unlinkSync(oldImgPath);
-                }
+            // Delete old image from Cloudinary
+            if (data.publicImg_id) {
+                await cloudinary.uploader.destroy(data.publicImg_id);
             }
-
-            // new set
-            obj.certificateImg = req.files.certificateImg[0].filename;
+            // Set new Cloudinary path and ID
+            obj.certificateImg = req.files.certificateImg[0].path;
+            obj.publicImg_id = req.files.certificateImg[0].filename;
         }
 
         // 🔥 PDF UPDATE
         if (req.files?.certificatePdf) {
-
-            // old delete
-            if (data.certificatePdf) {
-                let oldPdfPath = path.join(
-                    process.cwd(),
-                    "uploads",
-                    "certificate",
-                    data.certificatePdf
-                );
-
-                if (fs.existsSync(oldPdfPath)) {
-                    fs.unlinkSync(oldPdfPath);
-                }
+            // Delete old PDF from Cloudinary
+            if (data.publicPdf_id) {
+                await cloudinary.uploader.destroy(data.publicPdf_id, {
+                    resource_type: "image" // Required for PDFs
+                });
             }
-
-            // new set
-            obj.certificatePdf = req.files.certificatePdf[0].filename;
+            // Set new Cloudinary path and ID
+            obj.certificatePdf = req.files.certificatePdf[0].path;
+            obj.publicPdf_id = req.files.certificatePdf[0].filename;
         }
 
-        // ✅ update DB
-        let ResObj = await certificateModel.updateOne(
-            { _id: id },
+        let ResObj = await certificateModel.updateOne({ _id: id },
             { $set: obj }
         );
 
@@ -793,75 +671,45 @@ let editCertificate = async (req, res) => {
         });
 
     } catch (err) {
-        res.send({
-            status: false,
-            error: err.message
-        });
+        res.send({ status: false, error: err.message });
     }
 };
 
 
 let deleteCertificate = async (req, res) => {
     try {
-
         let { id } = req.params;
-
         let data = await certificateModel.findById(id);
+        // console.log(data);
 
         if (!data) {
-            return res.send({
-                status: false,
-                message: "Id not found"
+            return res.send({ status: true, message: "Id not found" });
+        }
+
+        // 🔥 DELETE IMAGE FROM CLOUDINARY
+        if (data.publicImg_id) {
+            await cloudinary.uploader.destroy(data.publicImg_id);
+        }
+
+        // 🔥 DELETE PDF FROM CLOUDINARY
+        if (data.publicPdf_id) {
+            await cloudinary.uploader.destroy(data.publicPdf_id, {
+                resource_type: "image" // Because Cloudinary stores PDFs here
             });
         }
 
-        // 🔥 DELETE IMAGE
-        if (data.certificateImg) {
-            let imgPath = path.join(
-                process.cwd(),
-                "uploads",
-                "certificate",
-                data.certificateImg
-            );
-
-            if (fs.existsSync(imgPath)) {
-                fs.unlinkSync(imgPath);
-                // console.log("✅ Image deleted");
-            }
-        }
-
-        // 🔥 DELETE PDF
-        if (data.certificatePdf) {
-            let pdfPath = path.join(
-                process.cwd(),
-                "uploads",
-                "certificate",
-                data.certificatePdf
-            );
-
-            if (fs.existsSync(pdfPath)) {
-                fs.unlinkSync(pdfPath);
-                // console.log("✅ PDF deleted");
-            }
-        }
-
         // ✅ DELETE FROM DB
-        await certificateModel.deleteOne({ _id: id });
+        await certificateModel.deleteOne({_id:id});
 
         res.send({
             status: true,
-            message: "Certificate deleted successfully"
+            message: "Certificate  deleted successfully"
         });
 
     } catch (err) {
-        console.log(err);
-        res.send({
-            status: false,
-            error: err.message
-        });
+        res.send({ status: false, error: err.message });
     }
 };
-
 
 
 module.exports = {

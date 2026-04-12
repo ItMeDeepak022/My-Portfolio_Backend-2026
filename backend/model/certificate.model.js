@@ -15,7 +15,9 @@ const certificateSchema = new mongoose.Schema({
     certificatePdf: {
         type: String,   // pdf filename
         required: true
-    }
+    },
+    publicImg_id: String,
+    publicPdf_id:String
 })
 
 module.exports = mongoose.model("certificate", certificateSchema)

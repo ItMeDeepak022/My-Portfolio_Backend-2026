@@ -3,7 +3,8 @@ const mongoose = require("mongoose");
 const internshipSchema = new mongoose.Schema({
     companyName: String,
     internPosition: String,
-    internImg: String
+    internImg: String,
+    public_id: String,
 })
 
 module.exports = mongoose.model("internship", internshipSchema);
