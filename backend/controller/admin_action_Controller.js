@@ -679,8 +679,8 @@ let editCertificate = async (req, res) => {
 let deleteCertificate = async (req, res) => {
     try {
         let { id } = req.params;
-        let data = await certificateModel.findById(id);
-        // console.log(data);
+        let data = await certificateModel.findOne({_id:id });
+        console.log(data);
 
         if (!data) {
             return res.send({ status: true, message: "Id not found" });

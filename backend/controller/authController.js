@@ -1,32 +1,32 @@
 const authModel = require("../model/auth.model")
 let bcrypt = require('bcrypt')
-let jwt=require('jsonwebtoken')
+let jwt = require('jsonwebtoken')
 let saltRounds = 10
 
 let login = async (req, res) => {
-    let {email, password } = req.body
+    let { email, password } = req.body
 
     let existUser = await authModel.findOne({ email })
 
     if (existUser) {
         let dbpassword = existUser.password
-         
-        var token = jwt.sign({userId:existUser._id},process.env.tokenKey);
+
+        var token = jwt.sign({ userId: existUser._id }, process.env.tokenKey);
 
         if (bcrypt.compareSync(password, dbpassword)) {
 
             res.send({
                 status: true,
                 message: "login Done..",
-                token:token
+                token: token
             })
         }
         else {
 
             res.send({
-                status:false,
+                status: false,
                 message: "Invalid password..",
-                 
+
             })
         }
 
@@ -78,4 +78,15 @@ let registration = async (req, res) => {
 
 }
 
-module.exports = { login, registration }
+let securityToken = async (req, res) => {
+
+    res.send({
+        status: true,
+        message: "token varified successfull",
+    });
+
+}
+
+
+
+module.exports = { login, registration,securityToken }
