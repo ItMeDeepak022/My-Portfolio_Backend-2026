@@ -39,7 +39,7 @@ adminRoute.get('/view-intern', viewIntern)
 adminRoute.delete('/delete-intern/:id', deleteIntern)
 
 
-// Internship Sections.......................
+// Internship end Sections.......................
 
 adminRoute.post('/add-project', upload('project').single('projectImg'), addproject)
 adminRoute.put('/edit-project/:id', upload('project').single('projectImg'), editproject)

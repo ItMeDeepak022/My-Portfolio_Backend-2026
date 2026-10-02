@@ -14,7 +14,7 @@ const upload = (folder) => {
             const publicId = `${Date.now()}-${cleanName}`;
 
             return {
-                folder: folder,
+                folder: folder,   
                 // "auto" detects PDF, JPG, PNG, DOC automatically
                 resource_type: "auto", 
                 public_id: publicId,

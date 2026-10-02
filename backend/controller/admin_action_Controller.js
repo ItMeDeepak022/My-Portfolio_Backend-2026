@@ -101,7 +101,7 @@ let viewProfile = async (req, res) => {
     })
 }
 
-let deleteProfile = async (req, res) => {
+let deleteProfile = async (req, res) => { 
     try {
 
         let { id } = req.params;
@@ -432,7 +432,7 @@ let deleteIntern = async (req, res) => {
             await cloudinary.uploader.destroy(data.public_id);
         }
 
-        await internshipModel.deleteOne(id);
+        await internshipModel.deleteOne({_id:id});
 
         res.send({
             status: true,
