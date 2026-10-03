@@ -13,7 +13,7 @@ let login = async (req, res) => {
             let dbpassword = existUser.password
 
             var token = jwt.sign({ userId: existUser._id }, process.env.tokenKey, {
-                expiresIn: "30s",
+                expiresIn: "5min",
             });
 
             if (bcrypt.compareSync(password, dbpassword)) {
