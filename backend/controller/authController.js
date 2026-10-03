@@ -4,38 +4,48 @@ let jwt = require('jsonwebtoken')
 let saltRounds = 10
 
 let login = async (req, res) => {
-    let { email, password } = req.body
+    try {
+        let { email, password } = req.body
 
-    let existUser = await authModel.findOne({ email })
+        let existUser = await authModel.findOne({ email })
 
-    if (existUser) {
-        let dbpassword = existUser.password
+        if (existUser) {
+            let dbpassword = existUser.password
 
-        var token = jwt.sign({ userId: existUser._id }, process.env.tokenKey);
+            var token = jwt.sign({ userId: existUser._id }, process.env.tokenKey, {
+                expiresIn: "30s",
+            });
 
-        if (bcrypt.compareSync(password, dbpassword)) {
+            if (bcrypt.compareSync(password, dbpassword)) {
 
-            res.send({
-                status: true,
-                message: "login Done..",
-                token: token
-            })
+                res.send({
+                    status: true,
+                    message: "login Done..",
+                    token: token
+                })
+            }
+            else {
+
+                res.send({
+                    status: false,
+                    message: "Invalid password..",
+
+                })
+            }
+
         }
-        else {
 
+        else {
             res.send({
                 status: false,
-                message: "Invalid password..",
-
+                message: "Email doesn't existing..."
             })
         }
-
     }
-
-    else {
-        res.send({
+    catch (err) {
+        return res.send({
             status: false,
-            message: "Email doesn't existing..."
+            message: err
         })
     }
 
@@ -89,4 +99,4 @@ let securityToken = async (req, res) => {
 
 
 
-module.exports = { login, registration,securityToken }
+module.exports = { login, registration, securityToken }

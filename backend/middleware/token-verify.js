@@ -21,10 +21,32 @@ const verifyToken = (req, res, next) => {
 
         next();
 
-    } catch (error) {
+    }
+    // catch (error) {
+    //     return res.status(401).json({
+    //         success: false,
+    //         message: "Invalid Token "
+    //     });
+    // }
+    catch (error) {
+
+        if (error.name === "TokenExpiredError") {
+            return res.status(401).json({
+                status: false,
+                message: "Token has expired. Please login again.",
+            });
+        }
+
+        if (error.name === "JsonWebTokenError") {
+            return res.status(401).json({
+                status: false,
+                message: "Invalid token.",
+            });
+        }
+
         return res.status(401).json({
-            success: false,
-            message: "Invalid Token"
+            status: false,
+            message: "Authentication failed." || error,
         });
     }
 };

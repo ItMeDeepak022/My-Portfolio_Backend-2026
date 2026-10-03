@@ -1,5 +1,13 @@
 require('dotenv').config()
 
+
+const dns = require('dns');
+
+dns.setServers([
+    '8.8.8.8',
+    '1.1.1.1'
+]);
+
 let express = require('express')
 let mongoose = require('mongoose')
 const { adminRoute } = require('./backend/routers/adminRoute')
