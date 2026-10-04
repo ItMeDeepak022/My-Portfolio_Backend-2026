@@ -12,9 +12,13 @@ let login = async (req, res) => {
         if (existUser) {
             let dbpassword = existUser.password
 
-            var token = jwt.sign({ userId: existUser._id }, process.env.tokenKey, {
-                expiresIn: "5min",
-            });
+            var token = jwt.sign(
+                { userId: existUser._id, tokenVersion: existUser.tokenVersion || 0 },
+                process.env.tokenKey,
+                {
+                    expiresIn: "5min", 
+                }
+            );
 
             if (bcrypt.compareSync(password, dbpassword)) {
 
@@ -97,6 +101,31 @@ let securityToken = async (req, res) => {
 
 }
 
+const logoutAllDevices = async (req, res) => {
+    try {
+        const userId = req.userId || req.user?.userId;
+        await authModel.updateOne(
+            { _id: userId },
+            {
+                $inc: {
+                    tokenVersion: 1
+                }
+            }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: "Logged out from all devices"
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Something went wrong"
+        });
+    }
+};
 
 
-module.exports = { login, registration, securityToken }
+
+module.exports = { login, registration, securityToken ,logoutAllDevices}

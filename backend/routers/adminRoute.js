@@ -1,5 +1,5 @@
 let express = require('express')
-const { login, registration, securityToken } = require('../controller/authController')
+const { login, registration, securityToken, logoutAllDevices } = require('../controller/authController')
 const { addProfile, editProfile, deleteProfile, addResume, editResume, deleteResume, addskill, viewSkills, editSkills, deleteSkills, addIntern, viewIntern, editIntern, deleteIntern, addproject, editproject, viewproject, deleteproject, addCertificate, viewCertificate, deleteCertificate, editCertificate, viewProfile, viewResume } = require('../controller/admin_action_Controller')
 const upload = require('../config/multerConfig')
 const verifyToken = require('../middleware/token-verify')
@@ -74,7 +74,7 @@ adminRoute.delete('/delete-certificate/:id', deleteCertificate)
 adminRoute.post('/login', login)
 adminRoute.get('/verify-token', verifyToken, securityToken)
 adminRoute.post('/registration', registration)
-
+adminRoute.post('/logout-all-devices', verifyToken, logoutAllDevices) 
 // -----------------------------------------------------
 
 module.exports = { adminRoute }
